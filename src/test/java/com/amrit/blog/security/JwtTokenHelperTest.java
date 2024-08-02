@@ -1,133 +1,97 @@
 package com.amrit.blog.security;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-import com.amrit.blog.entities.User;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import io.jsonwebtoken.Claims;
-
-import java.util.function.Function;
-
-import org.junit.jupiter.api.Disabled;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.impl.DefaultClaims;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ContextConfiguration(classes = {JwtTokenHelper.class})
-@ExtendWith(SpringExtension.class)
-class JwtTokenHelperTest {
-    @Autowired
+public class JwtTokenHelperTest {
+
+    private static final String SECRET_KEY = "testSecret";
+    private static final String USERNAME = "testUser";
+    private static final String TOKEN = "testToken";
+    private static final long JWT_TOKEN_VALIDITY = 5 * 60 * 1000L;
+
+    @InjectMocks
     private JwtTokenHelper jwtTokenHelper;
 
-    /**
-     * Method under test: {@link JwtTokenHelper#getUsernameFromToken(String)}
-     */
-//    @Test
-//    @Disabled("TODO: Complete this test")
-//    void GetUsernameFromToken_Test() {
-//        // TODO: Diffblue Cover was only able to create a partial test for this method:
-//        //   Reason: No inputs found that don't throw a trivial exception.
-//        //   Diffblue Cover tried to run the arrange/act section, but the method under
-//        //   test threw
-//        //   io.jsonwebtoken.MalformedJwtException: JWT strings must contain exactly 2 period characters. Found: 0
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:235)
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:481)
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parseClaimsJws(DefaultJwtParser.java:541)
-//        //       at com.amrit.blog.security.JwtTokenHelper.getAllClaimsFromToken(JwtTokenHelper.java:41)
-//        //       at com.amrit.blog.security.JwtTokenHelper.getClaimFromToken(JwtTokenHelper.java:35)
-//        //       at com.amrit.blog.security.JwtTokenHelper.getUsernameFromToken(JwtTokenHelper.java:26)
-//        //   See https://diff.blue/R013 to resolve this issue.
-//
-//        // Arrange and Act
-//        jwtTokenHelper.getUsernameFromToken("ABC123");
-//    }
+    @Mock
+    private UserDetails userDetails;
 
-    /**
-     * Method under test: {@link JwtTokenHelper#getExpirationDateFromToken(String)}
-     */
-//    @Test
-//    @Disabled("TODO: Complete this test")
-//    void GetExpirationDateFromToken_Test() {
-//        // TODO: Diffblue Cover was only able to create a partial test for this method:
-//        //   Reason: No inputs found that don't throw a trivial exception.
-//        //   Diffblue Cover tried to run the arrange/act section, but the method under
-//        //   test threw
-//        //   io.jsonwebtoken.MalformedJwtException: JWT strings must contain exactly 2 period characters. Found: 0
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:235)
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:481)
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parseClaimsJws(DefaultJwtParser.java:541)
-//        //       at com.amrit.blog.security.JwtTokenHelper.getAllClaimsFromToken(JwtTokenHelper.java:41)
-//        //       at com.amrit.blog.security.JwtTokenHelper.getClaimFromToken(JwtTokenHelper.java:35)
-//        //       at com.amrit.blog.security.JwtTokenHelper.getExpirationDateFromToken(JwtTokenHelper.java:31)
-//        //   See https://diff.blue/R013 to resolve this issue.
-//
-//        // Arrange and Act
-//        jwtTokenHelper.getExpirationDateFromToken("ABC123");
-//    }
-
-    /**
-     * Method under test: {@link JwtTokenHelper#getClaimFromToken(String, Function)}
-     */
-//    @Test
-//    @Disabled("TODO: Complete this test")
-//    void GetClaimFromToken_Test() {
-//        // TODO: Diffblue Cover was only able to create a partial test for this method:
-//        //   Reason: No inputs found that don't throw a trivial exception.
-//        //   Diffblue Cover tried to run the arrange/act section, but the method under
-//        //   test threw
-//        //   io.jsonwebtoken.MalformedJwtException: JWT strings must contain exactly 2 period characters. Found: 0
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:235)
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:481)
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parseClaimsJws(DefaultJwtParser.java:541)
-//        //       at com.amrit.blog.security.JwtTokenHelper.getAllClaimsFromToken(JwtTokenHelper.java:41)
-//        //       at com.amrit.blog.security.JwtTokenHelper.getClaimFromToken(JwtTokenHelper.java:35)
-//        //   See https://diff.blue/R013 to resolve this issue.
-//
-//        // Arrange and Act
-//        jwtTokenHelper.<Object>getClaimFromToken("ABC123", mock(Function.class));
-//    }
-
-    /**
-     * Method under test: {@link JwtTokenHelper#generateToken(UserDetails)}
-     */
-    @Test
-    void GenerateToken_Test() {
-        // Arrange
-        User userDetails = mock(User.class);
-        when(userDetails.getUsername()).thenReturn("janedoe");
-
-        // Act
-        jwtTokenHelper.generateToken(userDetails);
-
-        // Assert
-        verify(userDetails).getUsername();
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        jwtTokenHelper.secret = SECRET_KEY;
+        when(userDetails.getUsername()).thenReturn(USERNAME);
     }
 
-    /**
-     * Method under test: {@link JwtTokenHelper#validateToken(String, UserDetails)}
-     */
-//    @Test
-//    @Disabled("TODO: Complete this test")
-//    void ValidateToken_Test() {
-//        // TODO: Diffblue Cover was only able to create a partial test for this method:
-//        //   Reason: No inputs found that don't throw a trivial exception.
-//        //   Diffblue Cover tried to run the arrange/act section, but the method under
-//        //   test threw
-//        //   io.jsonwebtoken.MalformedJwtException: JWT strings must contain exactly 2 period characters. Found: 0
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:235)
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parse(DefaultJwtParser.java:481)
-//        //       at io.jsonwebtoken.impl.DefaultJwtParser.parseClaimsJws(DefaultJwtParser.java:541)
-//        //       at com.amrit.blog.security.JwtTokenHelper.getAllClaimsFromToken(JwtTokenHelper.java:41)
-//        //       at com.amrit.blog.security.JwtTokenHelper.getClaimFromToken(JwtTokenHelper.java:35)
-//        //       at com.amrit.blog.security.JwtTokenHelper.getUsernameFromToken(JwtTokenHelper.java:26)
-//        //       at com.amrit.blog.security.JwtTokenHelper.validateToken(JwtTokenHelper.java:69)
-//        //   See https://diff.blue/R013 to resolve this issue.
-//
-//        // Arrange and Act
-//        jwtTokenHelper.validateToken("ABC123", new User());
-//    }
+    @Test
+    public void testGetUsernameFromToken() {
+        Claims claims = mock(Claims.class);
+        when(claims.getSubject()).thenReturn(USERNAME);
+        JwtTokenHelper spy = spy(jwtTokenHelper);
+        doReturn(claims).when(spy).getAllClaimsFromToken(TOKEN);
+
+        String username = spy.getUsernameFromToken(TOKEN);
+
+        assertEquals(USERNAME, username);
+    }
+
+    @Test
+    public void testGetExpirationDateFromToken() {
+        Date expirationDate = new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY);
+        Claims claims = mock(Claims.class);
+        when(claims.getExpiration()).thenReturn(expirationDate);
+        JwtTokenHelper spy = spy(jwtTokenHelper);
+        doReturn(claims).when(spy).getAllClaimsFromToken(TOKEN);
+
+        Date returnedDate = spy.getExpirationDateFromToken(TOKEN);
+
+        assertEquals(expirationDate, returnedDate);
+    }
+
+    @Test
+    public void testGenerateToken() {
+        String token = jwtTokenHelper.generateToken(userDetails);
+        assertNotNull(token);
+    }
+
+    @Test
+    public void testValidateToken() {
+        Claims claims = new DefaultClaims();
+        claims.setSubject(USERNAME);
+        claims.setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY));
+        JwtTokenHelper spy = spy(jwtTokenHelper);
+        doReturn(claims).when(spy).getAllClaimsFromToken(anyString());
+
+        Boolean isValid = spy.validateToken(TOKEN, userDetails);
+
+        assertTrue(isValid);
+    }
+
+    @Test
+    public void testIsTokenExpired() {
+        Date futureDate = new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY);
+        Date pastDate = new Date(System.currentTimeMillis() - JWT_TOKEN_VALIDITY);
+
+        JwtTokenHelper spy = spy(jwtTokenHelper);
+        doReturn(futureDate).when(spy).getExpirationDateFromToken(anyString());
+        assertFalse(spy.isTokenExpired(TOKEN));
+
+        doReturn(pastDate).when(spy).getExpirationDateFromToken(anyString());
+        assertTrue(spy.isTokenExpired(TOKEN));
+    }
 }
